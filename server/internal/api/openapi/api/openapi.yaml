@@ -1,0 +1,279 @@
+openapi: 3.0.3
+info:
+  contact:
+    email: support@example.com
+    name: Support
+  description: API for managing flashcards in a learning application
+  title: Flashcard API
+  version: 1.0.0
+servers:
+- description: Local development server
+  url: http://localhost:8080
+paths:
+  /api/flashcards:
+    get:
+      description: Retrieves a list of all flashcards
+      operationId: getFlashcards
+      parameters:
+      - description: Filter flashcards by category
+        explode: true
+        in: query
+        name: category
+        required: false
+        schema:
+          type: string
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/Flashcard'
+                type: array
+          description: List of flashcards
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Internal server error
+      summary: Get all flashcards
+    post:
+      description: Creates a new flashcard with the provided data
+      operationId: createFlashcard
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FlashcardCreateRequest'
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Flashcard'
+          description: Flashcard created successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Bad request
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Internal server error
+      summary: Create a new flashcard
+  /api/flashcards/{id}:
+    delete:
+      description: Deletes a flashcard by its ID
+      operationId: deleteFlashcard
+      parameters:
+      - description: ID of the flashcard
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int64
+          type: integer
+        style: simple
+      responses:
+        "204":
+          description: Flashcard deleted successfully
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Resource not found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Internal server error
+      summary: Delete a flashcard
+    get:
+      description: Retrieves a flashcard by its ID
+      operationId: getFlashcard
+      parameters:
+      - description: ID of the flashcard
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int64
+          type: integer
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Flashcard'
+          description: Flashcard found
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Resource not found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Internal server error
+      summary: Get a specific flashcard
+    put:
+      description: Updates an existing flashcard with the provided data
+      operationId: updateFlashcard
+      parameters:
+      - description: ID of the flashcard
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int64
+          type: integer
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FlashcardUpdateRequest'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Flashcard'
+          description: Flashcard updated successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Bad request
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Resource not found
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Internal server error
+      summary: Update a flashcard
+components:
+  responses:
+    BadRequest:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+      description: Bad request
+    NotFound:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+      description: Resource not found
+    InternalServerError:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+      description: Internal server error
+  schemas:
+    Flashcard:
+      example:
+        updated_at: 2000-01-23T04:56:07.000+00:00
+        back: Paris
+        created_at: 2000-01-23T04:56:07.000+00:00
+        id: 1
+        front: What is the capital of France?
+        category: Geography
+      properties:
+        id:
+          example: 1
+          format: int64
+          type: integer
+        front:
+          example: What is the capital of France?
+          type: string
+        back:
+          example: Paris
+          type: string
+        category:
+          example: Geography
+          type: string
+        created_at:
+          format: date-time
+          type: string
+        updated_at:
+          format: date-time
+          type: string
+      required:
+      - back
+      - created_at
+      - front
+      - id
+      - updated_at
+      type: object
+    FlashcardCreateRequest:
+      example:
+        back: Paris
+        front: What is the capital of France?
+        category: Geography
+      properties:
+        front:
+          example: What is the capital of France?
+          type: string
+        back:
+          example: Paris
+          type: string
+        category:
+          example: Geography
+          type: string
+      required:
+      - back
+      - front
+      type: object
+    FlashcardUpdateRequest:
+      example:
+        back: Paris
+        front: What is the capital of France?
+        category: Geography
+      properties:
+        front:
+          example: What is the capital of France?
+          type: string
+        back:
+          example: Paris
+          type: string
+        category:
+          example: Geography
+          type: string
+      type: object
+    ErrorResponse:
+      example:
+        error: Error message
+      properties:
+        error:
+          example: Error message
+          type: string
+      required:
+      - error
+      type: object
