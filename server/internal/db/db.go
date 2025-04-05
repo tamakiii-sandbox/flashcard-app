@@ -3,11 +3,11 @@ package db
 import (
 	"database/sql"
 	"fmt"
-	
+
 	// Import database drivers
-	_ "github.com/mattn/go-sqlite3"
 	_ "github.com/lib/pq"
-	
+	_ "github.com/mattn/go-sqlite3"
+
 	"github.com/tamakiii/flashcard-app/server/internal/config"
 )
 
