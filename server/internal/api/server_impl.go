@@ -3,12 +3,8 @@ package api
 import (
 	"context"
 	"database/sql"
-	"errors"
-	"net/http"
-	"strconv"
 
 	"github.com/tamakiii/flashcard-app/server/internal/db"
-	"github.com/tamakiii/flashcard-app/server/internal/models"
 )
 
 // ServerImpl implements the OpenAPI ServerInterface
