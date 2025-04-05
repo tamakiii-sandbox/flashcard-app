@@ -1,2 +1,5 @@
-/node_modules/
-/coverage/
+/app/node_modules/
+/app/coverage/
+/app/dist/
+/app/.expo/
+/server/flashcards.db
