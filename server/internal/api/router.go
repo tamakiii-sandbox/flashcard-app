@@ -2,26 +2,38 @@ package api
 
 import (
 	"net/http"
-	"strings"
 
+	"github.com/go-chi/chi/v5"
+	middleware "github.com/oapi-codegen/oapi-codegen/v2/pkg/chi-middleware"
 	"github.com/tamakiii/flashcard-app/server/internal/db"
 )
 
-// Router handles HTTP routing
+// Router handles HTTP routing with OpenAPI validation
 type Router struct {
-	handler *Handler
+	handler  ServerInterface
+	swagger  *Swagger
+	basePath string
 }
 
 // NewRouter creates a new Router instance
 func NewRouter(db *db.DB) *Router {
+	swagger, err := GetSwagger()
+	if err != nil {
+		panic(err)
+	}
+	// Clear the ServerURLs to avoid validation issues
+	swagger.Servers = nil
+
 	return &Router{
-		handler: NewHandler(db),
+		handler:  NewServerImpl(db),
+		swagger:  swagger,
+		basePath: "",
 	}
 }
 
 // ServeHTTP implements the http.Handler interface
 func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	// Set CORS headers
+	// Set up CORS headers
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
@@ -32,44 +44,16 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	// Check if the request is to the API endpoint
-	path := req.URL.Path
-	if !strings.HasPrefix(path, "/api/") {
-		http.NotFound(w, req)
-		return
-	}
+	// Create Chi router
+	router := chi.NewRouter()
 
-	// Extract the API path
-	apiPath := strings.TrimPrefix(path, "/api")
-	if apiPath == "" {
-		apiPath = "/"
-	}
+	// Add middleware for OpenAPI validation
+	router.Use(middleware.OapiRequestValidator(r.swagger))
 
-	// Route based on path and method
-	switch {
-	case apiPath == "/flashcards" && req.Method == http.MethodGet:
-		r.handler.GetFlashcards(w, req)
-	case strings.HasPrefix(apiPath, "/flashcards/") && req.Method == http.MethodGet:
-		if strings.Count(apiPath, "/") == 2 {
-			r.handler.GetFlashcard(w, req)
-		} else {
-			http.NotFound(w, req)
-		}
-	case apiPath == "/flashcards" && req.Method == http.MethodPost:
-		r.handler.CreateFlashcard(w, req)
-	case strings.HasPrefix(apiPath, "/flashcards/") && req.Method == http.MethodPut:
-		if strings.Count(apiPath, "/") == 2 {
-			r.handler.UpdateFlashcard(w, req)
-		} else {
-			http.NotFound(w, req)
-		}
-	case strings.HasPrefix(apiPath, "/flashcards/") && req.Method == http.MethodDelete:
-		if strings.Count(apiPath, "/") == 2 {
-			r.handler.DeleteFlashcard(w, req)
-		} else {
-			http.NotFound(w, req)
-		}
-	default:
-		http.NotFound(w, req)
-	}
+	// Register handler
+	handler := NewStrictHandler(r.handler, nil)
+	HandlerFromMux(handler, router)
+
+	// Serve the request
+	router.ServeHTTP(w, req)
 }
