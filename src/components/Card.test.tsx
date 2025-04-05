@@ -1,39 +1,33 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react-native';
 import { Card } from './Card';
 
-describe('Card component', () => {
-  const mockProps = {
-    question: 'What is React?',
-    answer: 'A JavaScript library for building user interfaces'
-  };
-
-  test('renders the question', () => {
-    render(<Card {...mockProps} />);
-    expect(screen.getByText(mockProps.question)).toBeInTheDocument();
-  });
-
-  test('initially hides the answer', () => {
-    render(<Card {...mockProps} />);
-    expect(screen.queryByText(mockProps.answer)).not.toBeInTheDocument();
-  });
-
-  test('shows the answer when the button is clicked', () => {
-    render(<Card {...mockProps} />);
-    fireEvent.click(screen.getByTestId('toggle-button'));
-    expect(screen.getByText(mockProps.answer)).toBeInTheDocument();
-  });
-
-  test('hides the answer when the button is clicked again', () => {
-    render(<Card {...mockProps} />);
-    const button = screen.getByTestId('toggle-button');
+describe('Card Component', () => {
+  it('renders the title correctly', () => {
+    render(<Card title="Test Title" />);
     
-    // Show answer
-    fireEvent.click(button);
-    expect(screen.getByText(mockProps.answer)).toBeInTheDocument();
+    const titleElement = screen.getByText('Test Title');
+    expect(titleElement).toBeTruthy();
+  });
+
+  it('renders the content when provided', () => {
+    render(<Card title="Test Title" content="Test Content" />);
     
-    // Hide answer
-    fireEvent.click(button);
-    expect(screen.queryByText(mockProps.answer)).not.toBeInTheDocument();
+    const contentElement = screen.getByText('Test Content');
+    expect(contentElement).toBeTruthy();
+  });
+
+  it('does not render content when not provided', () => {
+    render(<Card title="Test Title" />);
+    
+    const contentElements = screen.queryAllByText(/Content/);
+    expect(contentElements.length).toBe(0);
+  });
+
+  it('has the correct testID', () => {
+    render(<Card title="Test Title" />);
+    
+    const cardElement = screen.getByTestId('flashcard');
+    expect(cardElement).toBeTruthy();
   });
 });
