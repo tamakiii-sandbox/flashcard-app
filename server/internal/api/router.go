@@ -53,25 +53,18 @@ func getFlashcards(c echo.Context, db *db.DB) error {
 	defer rows.Close()
 
 	// We're using the generated Flashcard type from api.gen.go
-	flashcards := []Flashcard{}
+	results := []Flashcard{}
 	for rows.Next() {
 		var f Flashcard
-		var categoryStr sql.NullString
 
-		if err := rows.Scan(&f.Id, &f.Front, &f.Back, &categoryStr, &f.CreatedAt, &f.UpdatedAt); err != nil {
-			errResp := ErrorResponse{
+		if err := rows.Scan(&f.Id, &f.Front, &f.Back, &f.CreatedAt, &f.UpdatedAt); err != nil {
+			return c.JSON(http.StatusInternalServerError, ErrorResponse{
 				Error: "Failed to scan flashcard",
-			}
-			return c.JSON(http.StatusInternalServerError, errResp)
+			})
 		}
 
-		if categoryStr.Valid {
-			cat := categoryStr.String
-			f.Category = &cat
-		}
-
-		flashcards = append(flashcards, f)
+		results = append(results, f)
 	}
 
-	return c.JSON(http.StatusOK, flashcards)
+	return c.JSON(http.StatusOK, results)
 }
