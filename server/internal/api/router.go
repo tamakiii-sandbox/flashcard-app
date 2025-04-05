@@ -3,57 +3,64 @@ package api
 import (
 	"net/http"
 
-	"github.com/go-chi/chi/v5"
-	middleware "github.com/oapi-codegen/nethttp-middleware"
+	"github.com/labstack/echo/v4"
 	"github.com/tamakiii/flashcard-app/server/internal/db"
 )
 
-// Router handles HTTP routing with OpenAPI validation
-type Router struct {
-	handler  ServerInterface
-	swagger  *Swagger
-	basePath string
+func NewHandler(db *db.DB) http.Handler {
+	e := echo.New()
+	e.GET("/", func(c echo.Context) error {
+		return c.String(http.StatusOK, "Hello, World!")
+	})
+	return e
 }
 
-// NewRouter creates a new Router instance
-func NewRouter(db *db.DB) *Router {
-	swagger, err := GetSwagger()
-	if err != nil {
-		panic(err)
-	}
-	// Clear the ServerURLs to avoid validation issues
-	swagger.Servers = nil
+// // Router handles HTTP routing with OpenAPI validation
+// type Router struct {
+// 	handler ServerInterface
+// 	// swagger  *Swagger
+// 	basePath string
+// }
 
-	return &Router{
-		handler:  NewServerImpl(db),
-		swagger:  swagger,
-		basePath: "",
-	}
-}
+// // NewRouter creates a new Router instance
+// func NewRouter(db *db.DB) *Router {
+// 	swagger, err := GetSwagger()
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// 	// Clear the ServerURLs to avoid validation issues
+// 	swagger.Servers = nil
 
-// ServeHTTP implements the http.Handler interface
-func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	// Set up CORS headers
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+// 	return &Router{
+// 		handler:  NewServerImpl(db),
+// 		swagger:  swagger,
+// 		basePath: "",
+// 	}
+// }
 
-	// Handle preflight requests
-	if req.Method == http.MethodOptions {
-		w.WriteHeader(http.StatusOK)
-		return
-	}
+// // ServeHTTP implements the http.Handler interface
+// func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+// 	// Set up CORS headers
+// 	w.Header().Set("Access-Control-Allow-Origin", "*")
+// 	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+// 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 
-	// Create Chi router
-	router := chi.NewRouter()
+// 	// Handle preflight requests
+// 	if req.Method == http.MethodOptions {
+// 		w.WriteHeader(http.StatusOK)
+// 		return
+// 	}
 
-	// Add middleware for OpenAPI validation
-	router.Use(middleware.OapiRequestValidator(r.swagger))
+// 	// Create Chi router
+// 	router := chi.NewRouter()
 
-	// Register handler
-	handler := NewStrictHandler(r.handler, nil)
-	HandlerFromMux(handler, router)
+// 	// Add middleware for OpenAPI validation
+// 	router.Use(middleware.OapiRequestValidator(r.swagger))
 
-	// Serve the request
-	router.ServeHTTP(w, req)
-}
+// 	// Register handler
+// 	handler := NewStrictHandler(r.handler, nil)
+// 	HandlerFromMux(handler, router)
+
+// 	// Serve the request
+// 	router.ServeHTTP(w, req)
+// }
