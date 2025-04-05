@@ -11,7 +11,8 @@ module.exports = (env, argv) => {
     entry: './src/index.tsx',
     output: {
       path: path.resolve(__dirname, 'dist'),
-      filename: isProduction ? '[name].[contenthash].js' : 'bundle.js',
+      filename: isProduction ? '[name].[contenthash].js' : '[name].bundle.js',
+      chunkFilename: isProduction ? '[name].[contenthash].chunk.js' : '[name].chunk.js',
       publicPath: '/',
     },
     devtool: isProduction ? 'source-map' : 'eval-source-map',
@@ -36,7 +37,7 @@ module.exports = (env, argv) => {
           ],
         },
         {
-          test: /\.(png|svg|jpg|jpeg|gif)$/i,
+          test: /\.(png|svg|jpg|jpeg|gif|ico)$/i,
           type: 'asset',
         },
         {
@@ -49,7 +50,7 @@ module.exports = (env, argv) => {
       new CleanWebpackPlugin(),
       new HtmlWebpackPlugin({
         template: './src/index.html',
-        favicon: path.resolve(__dirname, 'src/favicon.ico'),
+        // Removed favicon reference
         minify: isProduction ? {
           removeComments: true,
           collapseWhitespace: true,
@@ -75,7 +76,7 @@ module.exports = (env, argv) => {
         name: false,
       },
       runtimeChunk: {
-        name: (entrypoint) => `runtime-${entrypoint.name}`,
+        name: 'runtime',
       },
     },
     devServer: {
