@@ -18,6 +18,13 @@ func NewHandler(db *db.DB) http.Handler {
 
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
+	
+	// Add CORS middleware
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins: []string{"*"},
+		AllowMethods: []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodOptions},
+		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization},
+	}))
 
 	e.GET("/swagger/*", Swagger.WrapHandler)
 
