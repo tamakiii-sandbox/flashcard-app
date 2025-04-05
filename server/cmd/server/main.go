@@ -1,16 +1,18 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
-	"github.com/tamakiii/flashcard-app/server/internal/api"
-	"github.com/tamakiii/flashcard-app/server/internal/config"
-	"github.com/tamakiii/flashcard-app/server/internal/db"
+	"github.com/tamakiii-sandbox/flashcard-app/server/internal/api"
+	"github.com/tamakiii-sandbox/flashcard-app/server/internal/config"
+	"github.com/tamakiii-sandbox/flashcard-app/server/internal/db"
 )
 
 func main() {
@@ -28,12 +30,12 @@ func main() {
 	defer database.Close()
 
 	// Initialize API router
-	router := api.NewRouter(database)
+	handler := api.NewHandler(database)
 
 	// Set up the HTTP server
 	server := &http.Server{
 		Addr:    fmt.Sprintf(":%d", cfg.Server.Port),
-		Handler: router,
+		Handler: handler,
 	}
 
 	// Start the server in a goroutine
@@ -50,7 +52,10 @@ func main() {
 	<-quit
 
 	log.Println("Shutting down server...")
-	if err := server.Close(); err != nil {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if err := server.Shutdown(ctx); err != nil {
 		log.Fatalf("Server forced to shutdown: %v", err)
 	}
 	log.Println("Server exited properly")
