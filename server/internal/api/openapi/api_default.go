@@ -54,27 +54,27 @@ func (c *DefaultAPIController) Routes() Routes {
 	return Routes{
 		"GetFlashcards": Route{
 			strings.ToUpper("Get"),
-			"/api/flashcards",
+			"/flashcards",
 			c.GetFlashcards,
 		},
 		"CreateFlashcard": Route{
 			strings.ToUpper("Post"),
-			"/api/flashcards",
+			"/flashcards",
 			c.CreateFlashcard,
 		},
 		"GetFlashcard": Route{
 			strings.ToUpper("Get"),
-			"/api/flashcards/{id}",
+			"/flashcards/{id}",
 			c.GetFlashcard,
 		},
 		"UpdateFlashcard": Route{
 			strings.ToUpper("Put"),
-			"/api/flashcards/{id}",
+			"/flashcards/{id}",
 			c.UpdateFlashcard,
 		},
 		"DeleteFlashcard": Route{
 			strings.ToUpper("Delete"),
-			"/api/flashcards/{id}",
+			"/flashcards/{id}",
 			c.DeleteFlashcard,
 		},
 	}

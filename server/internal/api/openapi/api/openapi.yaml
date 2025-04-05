@@ -10,7 +10,7 @@ servers:
 - description: Local development server
   url: http://localhost:8080
 paths:
-  /api/flashcards:
+  /flashcards:
     get:
       description: Retrieves a list of all flashcards
       operationId: getFlashcards
@@ -68,7 +68,7 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
           description: Internal server error
       summary: Create a new flashcard
-  /api/flashcards/{id}:
+  /flashcards/{id}:
     delete:
       description: Deletes a flashcard by its ID
       operationId: deleteFlashcard
