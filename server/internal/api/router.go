@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	middleware "github.com/oapi-codegen/oapi-codegen/v2/pkg/chi-middleware"
+	middleware "github.com/oapi-codegen/nethttp-middleware"
 	"github.com/tamakiii/flashcard-app/server/internal/db"
 )
 
