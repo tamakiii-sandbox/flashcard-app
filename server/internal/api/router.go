@@ -1,66 +1,77 @@
 package api
 
 import (
+	"database/sql"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
+	Swagger "github.com/swaggo/echo-swagger"
 	"github.com/tamakiii/flashcard-app/server/internal/db"
 )
 
 func NewHandler(db *db.DB) http.Handler {
 	e := echo.New()
+
+	e.Use(middleware.Logger())
+	e.Use(middleware.Recover())
+
+	e.GET("/swagger/*", Swagger.WrapHandler)
+
+	// Register the API endpoints according to our OpenAPI specification
+	api := e.Group("/api")
+	{
+		api.GET("/flashcards", func(c echo.Context) error {
+			return getFlashcards(c, db)
+		})
+	}
+
 	e.GET("/", func(c echo.Context) error {
-		return c.String(http.StatusOK, "Hello, World!")
+		return c.JSON(http.StatusOK, map[string]string{
+			"message": "Hello",
+		})
 	})
+
 	return e
 }
 
-// // Router handles HTTP routing with OpenAPI validation
-// type Router struct {
-// 	handler ServerInterface
-// 	// swagger  *Swagger
-// 	basePath string
-// }
+// getFlashcards implements the GET /api/flashcards endpoint
+func getFlashcards(c echo.Context, db *db.DB) error {
+	var rows *sql.Rows
+	var err error
 
-// // NewRouter creates a new Router instance
-// func NewRouter(db *db.DB) *Router {
-// 	swagger, err := GetSwagger()
-// 	if err != nil {
-// 		panic(err)
-// 	}
-// 	// Clear the ServerURLs to avoid validation issues
-// 	swagger.Servers = nil
+	// Query the database based on category parameter
+	rows, err = db.Query("SELECT id, front, back, category, created_at, updated_at FROM flashcards ORDER BY id DESC")
 
-// 	return &Router{
-// 		handler:  NewServerImpl(db),
-// 		swagger:  swagger,
-// 		basePath: "",
-// 	}
-// }
+	if err != nil {
+		// Using the generated ErrorResponse type from api.gen.go
+		errResp := ErrorResponse{
+			Error: "Failed to fetch flashcards",
+		}
+		return c.JSON(http.StatusInternalServerError, errResp)
+	}
+	defer rows.Close()
 
-// // ServeHTTP implements the http.Handler interface
-// func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-// 	// Set up CORS headers
-// 	w.Header().Set("Access-Control-Allow-Origin", "*")
-// 	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-// 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+	// We're using the generated Flashcard type from api.gen.go
+	flashcards := []Flashcard{}
+	for rows.Next() {
+		var f Flashcard
+		var categoryStr sql.NullString
 
-// 	// Handle preflight requests
-// 	if req.Method == http.MethodOptions {
-// 		w.WriteHeader(http.StatusOK)
-// 		return
-// 	}
+		if err := rows.Scan(&f.Id, &f.Front, &f.Back, &categoryStr, &f.CreatedAt, &f.UpdatedAt); err != nil {
+			errResp := ErrorResponse{
+				Error: "Failed to scan flashcard",
+			}
+			return c.JSON(http.StatusInternalServerError, errResp)
+		}
 
-// 	// Create Chi router
-// 	router := chi.NewRouter()
+		if categoryStr.Valid {
+			cat := categoryStr.String
+			f.Category = &cat
+		}
 
-// 	// Add middleware for OpenAPI validation
-// 	router.Use(middleware.OapiRequestValidator(r.swagger))
+		flashcards = append(flashcards, f)
+	}
 
-// 	// Register handler
-// 	handler := NewStrictHandler(r.handler, nil)
-// 	HandlerFromMux(handler, router)
-
-// 	// Serve the request
-// 	router.ServeHTTP(w, req)
-// }
+	return c.JSON(http.StatusOK, flashcards)
+}
