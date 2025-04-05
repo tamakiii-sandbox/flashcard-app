@@ -1,4 +1,4 @@
-module github.com/tamakiii/flashcard-app/server
+module github.com/tamakiii-sandbox/flashcard-app/server
 
 go 1.24.2
 

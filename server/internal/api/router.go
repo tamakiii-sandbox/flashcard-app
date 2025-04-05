@@ -9,8 +9,8 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	Swagger "github.com/swaggo/echo-swagger"
-	openapi "github.com/tamakiii/flashcard-app/server/internal/api/openapi"
-	"github.com/tamakiii/flashcard-app/server/internal/db"
+	openapi "github.com/tamakiii-sandbox/flashcard-app/server/internal/api/openapi"
+	"github.com/tamakiii-sandbox/flashcard-app/server/internal/db"
 )
 
 func NewHandler(db *db.DB) http.Handler {

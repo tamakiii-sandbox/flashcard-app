@@ -8,7 +8,7 @@ import (
 	_ "github.com/lib/pq"
 	_ "github.com/mattn/go-sqlite3"
 
-	"github.com/tamakiii/flashcard-app/server/internal/config"
+	"github.com/tamakiii-sandbox/flashcard-app/server/internal/config"
 )
 
 // DB represents a database connection

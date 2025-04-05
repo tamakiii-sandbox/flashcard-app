@@ -10,9 +10,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/tamakiii/flashcard-app/server/internal/api"
-	"github.com/tamakiii/flashcard-app/server/internal/config"
-	"github.com/tamakiii/flashcard-app/server/internal/db"
+	"github.com/tamakiii-sandbox/flashcard-app/server/internal/api"
+	"github.com/tamakiii-sandbox/flashcard-app/server/internal/config"
+	"github.com/tamakiii-sandbox/flashcard-app/server/internal/db"
 )
 
 func main() {
