@@ -2,3 +2,4 @@
 /app/coverage/
 /app/dist/
 /app/.expo/
+/server/flashcards.db
