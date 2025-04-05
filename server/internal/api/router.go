@@ -95,8 +95,62 @@ func (s *FlashcardAPIService) GetFlashcards(ctx context.Context, category string
 
 // CreateFlashcard - Create a new flashcard
 func (s *FlashcardAPIService) CreateFlashcard(ctx context.Context, request openapi.FlashcardCreateRequest) (openapi.ImplResponse, error) {
-	// For now, return not implemented
-	return openapi.Response(http.StatusNotImplemented, nil), nil
+	// Validate required fields
+	if request.Front == "" || request.Back == "" {
+		return openapi.Response(http.StatusBadRequest, openapi.ErrorResponse{
+			Error: "Front and back fields are required",
+		}), nil
+	}
+
+	// Insert the new flashcard into the database
+	var categoryValue interface{} = nil
+	if request.Category != "" {
+		categoryValue = request.Category
+	}
+
+	result, err := s.db.Exec(
+		"INSERT INTO flashcards (front, back, category, created_at, updated_at) VALUES (?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)",
+		request.Front, request.Back, categoryValue,
+	)
+	if err != nil {
+		return openapi.Response(http.StatusInternalServerError, openapi.ErrorResponse{
+			Error: "Failed to create flashcard: " + err.Error(),
+		}), nil
+	}
+
+	// Get the ID of the newly created flashcard
+	id, err := result.LastInsertId()
+	if err != nil {
+		return openapi.Response(http.StatusInternalServerError, openapi.ErrorResponse{
+			Error: "Failed to get flashcard ID",
+		}), nil
+	}
+
+	// Fetch the created flashcard to return it
+	var flashcard openapi.Flashcard
+	var createdAt, updatedAt time.Time
+	var category sql.NullString
+
+	err = s.db.QueryRow(
+		"SELECT id, front, back, category, created_at, updated_at FROM flashcards WHERE id = ?",
+		id,
+	).Scan(&flashcard.Id, &flashcard.Front, &flashcard.Back, &category, &createdAt, &updatedAt)
+
+	if err != nil {
+		return openapi.Response(http.StatusInternalServerError, openapi.ErrorResponse{
+			Error: "Flashcard created but failed to retrieve it: " + err.Error(),
+		}), nil
+	}
+
+	// Set the category if it's not null
+	if category.Valid {
+		flashcard.Category = category.String
+	}
+
+	flashcard.CreatedAt = createdAt
+	flashcard.UpdatedAt = updatedAt
+
+	return openapi.Response(http.StatusCreated, flashcard), nil
 }
 
 // GetFlashcard - Get a specific flashcard
